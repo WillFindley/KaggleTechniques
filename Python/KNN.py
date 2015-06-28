@@ -1,32 +1,63 @@
 import csv
-import random
+import sys
+import math
 import numpy as np
+from collections import Counter
 
-def KNN(dataDirectory):
-    with open(dataDirectory) as f:
-        reader = csv.reader(f,csv.QUOTE_NONNUMERIC)
+def KNN(trainDirectory,testdirectory):
+
+    with open(trainDirectory) as train, open(testdirectory) as test:
+        reader = csv.reader(train,csv.QUOTE_NONNUMERIC)
         next(reader) # skip the labels line
         memory = [np.array([item for item in row],dtype='i') for row in reader]
-        N = stochasticGradientDescent(memory)
+        train.close()
 
-def stochasticGradientDescent(memory):
-    v = 0;
-    N = 1;
-    momentum = 0.5;
-    learningRate = len(memory)/10;
-    while True:
-        newV = int(round(momentum*v - (1-momentum)*learningRate*(leaveOneOutCrossValidation(memory,N+1) - leaveOneOutCrossValidation(memory,N))))
-        if newV == 0:
-            break
-        
-        N = N + newV
+        # this choice has roughly as many effective parameters as image dimensions * categories
+        k = len(memory)/(10*len(memory[0]));
+        k = k - (k % 2) + 1;
+
+        reader = csv.reader(test,csv.QUOTE_NONNUMERIC)
+        next(reader) # skip the labels line
+        probes = [np.array([item for item in row],dtype='i') for row in reader]
+        test.close()
+
+        runKNN(memory,k,probes)
 
 
-def leaveOneOutCrossValidation(memory,N):
-        for whichOut in xrange(len(memory)):
-            leftOut = np.array(memory[whichOut],dtype='i')
-            for row in xrange(3):
-                if row != whichOut:
-                    print np.linalg.norm(toCheck[1:] - memory[row][1:])
+def runKNN(memory,k,probes):
 
-KNN("../Data/train.csv")
+    with open('answers', 'w') as answerFile:
+        for toProbe in xrange(len(probes)):
+            answer = knnVote(memory,k,probes[toProbe]);
+            answerFile.write(str(answer) + '\n')
+            print str(answer) + '\t' + str(float(1+toProbe)/len(probes))
+        answerFile.flush()
+        answerFile.close()
+
+
+def knnVote(memory,k,probe):
+
+    q = MaxHeap(k)
+    for row in xrange(len(memory)):
+        distance = np.linalg.norm(probe - memory[row][1:])
+        q.pushPop([distance,memory[row][0]])
+    return Counter([item[1] for item in q.data]).most_common(1)[0][0]
+
+
+class MaxHeap:
+    def __init__(self,k):
+        self.data = [[sys.maxint, 15] for i in xrange(k)]
+    def pushPop(self,entry):
+        if (entry[0] < self.data[0][0]):
+            self.addToHeap(entry,1)
+    def addToHeap(self,entry,vertex):
+        if 2*vertex-1 < len(self.data) and self.data[2*vertex-1][0] > entry[0]:
+            self.data[vertex-1] = self.data[2*vertex-1]
+            self.addToHeap(entry,2*vertex)
+        elif 2*vertex < len(self.data) and self.data[2*vertex][0] > entry[0]:
+            self.data[vertex-1] = self.data[2*vertex]
+            self.addToHeap(entry,2*vertex+1)
+        else:
+            self.data[vertex-1] = entry
+
+KNN("../Data/train.csv","../Data/test.csv")
