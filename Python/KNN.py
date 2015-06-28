@@ -27,9 +27,10 @@ def KNN(trainDirectory,testdirectory):
 def runKNN(memory,k,probes):
 
     with open('answers', 'w') as answerFile:
+        answerFile.write("ImageId,Label")
         for toProbe in xrange(len(probes)):
             answer = knnVote(memory,k,probes[toProbe]);
-            answerFile.write(str(answer) + '\n')
+            answerFile.write(str(toProbe+1) + ",\"" + str(answer) + '\"\n')
             print str(answer) + '\t' + str(float(1+toProbe)/len(probes))
         answerFile.flush()
         answerFile.close()
