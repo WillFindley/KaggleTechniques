@@ -29,7 +29,7 @@ knnVote <- function(memory,k,probe) {
 	for (row in 1:nrow(memory)) {
 		memoryLoc <- as.integer(memory[row,2:ncol(memory)])
 		distance <- norm(as.matrix(probe-memoryLoc))
-		q$pushPop(c(distance,as.integer(memory[row,1])),q$data)
+		q <- pushPop.MaxHeap(q,c(distance,as.integer(memory[row,1])))
 	}
 	categories <- as.integer(q$data[,2])
 	uniqueCategories <- unique(categories)
@@ -41,29 +41,39 @@ MaxHeap <- function(k) {
 	ma <- matrix(c(.Machine$integer.max,15), nrow=1)
 	data <- ma[rep(1,k),]
 
-	pushPop <- function(entry,data) {
+	me <- list(data=data)
 
-			addToHeap <- function(entry,vertex) {
-		
-				if (2*vertex <= nrow(data) && data[2*vertex,1] > entry[1]) {
-					data[vertex,] <- data[2*vertex,]
-					addToHeap(entry,2*vertex)
-				} else if (2*vertex+1 <= nrow(data) && data[2*vertex+1,1] > entry[1]) {
-					data[vertex,] <- data[2*vertex+1,]
-					addToHeap(entry,2*vertex+1)
-				} else {
-					data[vertex,] <- entry
-				}
-			}
-			
-			if (entry[1] < data[1,1]) {
-				addToHeap(entry,1)
-			}
-		}
-
-	me <- list(data=data, pushPop=pushPop)
+	class(me) <- "MaxHeap"
 
 	return(me)
 }
+
+pushPop <- function(x) UseMethod("pushPop")
+pushPop.default <- function(x) "Unknown class"
+
+pushPop.MaxHeap <- function(maxHeap,entry) {
+
+			
+	if (entry[1] < maxHeap$data[1,1]) {
+		maxHeap$data <- addToHeap(maxHeap$data,entry,1)
+	}
+	
+	return(maxHeap)
+}
+
+addToHeap <- function(data,entry,vertex) {
+
+	if (2*vertex <= nrow(data) && data[2*vertex,1] > entry[1]) {
+		data[vertex,] <- data[2*vertex,]
+		addToHeap(data,entry,2*vertex)
+	} else if (2*vertex+1 <= nrow(data) && data[2*vertex+1,1] > entry[1]) {
+		data[vertex,] <- data[2*vertex+1,]
+		addToHeap(data,entry,2*vertex+1)
+	} else {
+		data[vertex,] <- entry
+		return(data)
+	}
+}
+
 
 KNN("../Data/train.csv","../Data/test.csv")
