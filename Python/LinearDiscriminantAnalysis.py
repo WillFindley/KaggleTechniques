@@ -31,19 +31,17 @@ def calculateLinearDiscriminantFunctions(memory):
     N = len(memory)
     K = 10
 
-    piK = np.array([0 for i in xrange(K)])
-    meanK = [np.array([0 for i in xrange(len(memory[0][1:]))]) for i in xrange(K)]
+    piK = np.array([0.0 for i in xrange(K)])
+    meanK = [np.array([0.0 for i in xrange(len(memory[0][1:]))]) for i in xrange(K)]
     for row in xrange(N):
         piK[memory[row][0]] += 1
         meanK[memory[row][0]] += memory[row][1:]
-
-    print str(N)
 
     for whichK in xrange(K):
         meanK[whichK] /= float(piK[whichK])
     piK /= float(N)
 
-    covariance = 0
+    covariance = 0.0
     for row in xrange(N):
         distanceFromCentroid = memory[row][1:] - meanK[memory[row][0]]
         covariance += np.dot(distanceFromCentroid,distanceFromCentroid)
@@ -57,8 +55,8 @@ def calculateLinearDiscriminantFunctions(memory):
 
 def runLDA(parameters,probes):
 
-    with open('answersLDA', 'w') as answerFile:
-        answerFile.write("ImageId,Label")
+    with open('answersLDA.csv', 'w') as answerFile:
+        answerFile.write("ImageId,Label\n")
         for toProbe in xrange(len(probes)):
             answer = maxLDFunction(parameters,probes[toProbe]);
             answerFile.write(str(toProbe+1) + ",\"" + str(answer) + '\"\n')
@@ -69,9 +67,9 @@ def runLDA(parameters,probes):
 
 def maxLDFunction(parameters,probe):
 
-    answer = [-1, -inf]
+    answer = [-1, float('-inf')]
     for whichK in xrange(len(parameters.piK)):
-        thisLDFunction = np.dot(probe,parameters.meanK[whichK])/parameters.covariance + parameters.probeIndependentTerm
+        thisLDFunction = np.dot(probe,parameters.meanK[whichK])/parameters.covariance + parameters.probeIndependentTerm[whichK]
         if thisLDFunction >= answer[1]:
             answer = [whichK,thisLDFunction]
     return answer[0]
