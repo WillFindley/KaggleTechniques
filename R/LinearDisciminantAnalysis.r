@@ -58,9 +58,9 @@ maxLDFunction <- function(parameters,probe) {
 
 	answer <- c(-1,-Inf)
 	for (whichK in 1:nrow(parameters$probeIndependentTerm)) {
-		thisLDFunction <- (probe %*% as.integer(parameters$meanK[whichK,])) / parameters$covariance + as.integer(parameters$probeIndependentTerm[whichK,1])
+		thisLDFunction <- (probe %*% parameters$meanK[whichK,]) / parameters$covariance + parameters$probeIndependentTerm[whichK,1]
 		if (thisLDFunction >= answer[2]) {
-			answer = c(whichK,thisLDFunction)
+			answer = c(whichK-1,thisLDFunction)
 		}
 	}
 	return(answer[1])
