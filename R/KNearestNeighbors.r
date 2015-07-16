@@ -1,3 +1,6 @@
+# complete commenting is in the python code, as that is my primary code for development.
+# this R code primarily is serving as a refresher
+
 KNN <- function(trainDirectory,testdirectory) {
 
 	memory <- read.csv(trainDirectory)
